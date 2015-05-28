@@ -20,7 +20,7 @@ class AlertLogicAPI:
 		#The API base url
 		self._BASE_URL = "https://api.product.dev.alertlogic.com"
 		self.token = ""
-	
+
 	def login(self, username, password):
 		authenticate_url = "/aims/v1/authenticate"
 		req = requests.post(self._BASE_URL+authenticate_url, auth=HTTPBasicAuth(username, password))
@@ -49,7 +49,7 @@ class AlertLogicAPI:
 			req.raise_for_status()
 			print "Error "+req.status_code
 			return False
-	
+
 def main():
 	#alAPI = AlertLogicAPI()
 	#alAPI.login("admin@ozone.com", "1newP@ssword")
@@ -61,11 +61,11 @@ if __name__ == "__main__":
 	main()
 
 """
-	{  
-   		"credential":{  
+	{
+   		"credential":{
       		"name":"Ozone",
       		"type":"iam_role",
-      		"iam_role":{  
+      		"iam_role":{
          		"arn":"arn:aws:iam::123456789016:role/outcomes_role",
          		"external_id":"0000-0001"
       		}
@@ -88,4 +88,4 @@ if __name__ == "__main__":
 # 3) Create environment
 #	3.1 Create the source
 #		3.1.1 Send a request to /sources/v1/:account_id/sources
-#	
+#
