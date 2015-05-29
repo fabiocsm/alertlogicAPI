@@ -67,17 +67,21 @@ class AlertLogicAPI:
 			req.raise_for_status()
 	def validateCredentials(self, credential):
 		credentials_url = "/cloud_explorer/v1/validate_credentials"
-		jsonCredential = {"credential":json.dumps(credential)}
-		headers = {"x-iam-auth-token": self.token, "Content-Type": "application/json"}
-		req = requests.post(self._BASE_URL+credentials_url, headers=headers, data=jsonCredential)
-		if req.status_code == req.codes.ok:
+		jsonCredential = json.dumps(credential, default=AlertLogicAPI.jdefault)
+		payload = {"credential": jsonCredential}
+		headers = {"x-iam-auth-token": "self.token", "Content-Type": "application/json"}
+		req = requests.post(self._BASE_URL+credentials_url, headers=headers, params=payload)
+		print req
+		print req.text
+		"""
+		if req.status_code == requests.codes.ok:
 			print "Valid"
 			return True
-		elif req.status_code == req.codes.forbidden:
+		elif req.status_code == requests.codes.forbidden:
 			req.raise_for_status()
 			print "Error 403"
 			return False
-		elif req.status_code == req.code.unauthorized:
+		elif req.status_code == requests.code.unauthorized:
 			print "Error 401"
 			req.raise_for_status()
 			return False
@@ -85,14 +89,15 @@ class AlertLogicAPI:
 			req.raise_for_status()
 			print "Error "+req.status_code
 			return False
+		"""
 
 def main():
-	#alAPI = AlertLogicAPI()
-	#alAPI.login("admin@ozone.com", "1newP@ssword")
+	alAPI = AlertLogicAPI()
+	alAPI.login("admin@ozone.com", "1newP@ssword")
 	credential = Credential("arn:aws:iam::481746159046:role/RestrictedRole", "0000-0012", "Ozone")
-	print json.dumps(credential, indent=4, default=AlertLogicAPI.jdefault)
-	#alAPI.validateCredentials(credential)
-	#print alAPI.user
+	#print json.dumps(credential, indent=4, default=AlertLogicAPI.jdefault)
+	print alAPI.user
+	alAPI.validateCredentials(credential)
 	#print alAPI.user.email
 
 if __name__ == "__main__":
