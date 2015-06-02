@@ -134,11 +134,11 @@ class Source:
 		self.name = source_dict.get("name")
 		self.enabled = source_dict.get("enabled")
 		self.product_type = source_dict.get("product_type")
-		self.tags.extend(source_dict.get("tags"))
+		self.tags.extend(source_dict.get("tags", list()))
 		self.type = source_dict.get("type")
 		self.host = source_dict.get("host")
-		self.status = Status(user_dict.get("status"))
-		self.config = Config(user_dict.get("config"))
+		self.status = Status(source_dict.get("status"))
+		self.config = Config(source_dict.get("config"))
 		Record = namedtuple("Record", "at, by")
 		self.created = Record(source_dict.get("created").get("at"), source_dict.get("created").get("by"))
 		self.modified = Record(source_dict.get("modified").get("at"), source_dict.get("modified").get("by"))
@@ -150,10 +150,10 @@ class Source:
 				"  Enabled: " + str(self.enabled) + "\r\n" +
 				"  Product Type: " + self.product_type + "\r\n" +
 				"  Type: " + self.type + "\r\n" +
-				"  Tags: " + self.tags + "\r\n" +
-				"  Host: " + self.host + "\r\n" +
-				"  Status: " + self.status + "\r\n" +
-				"  Config: " + self.config + "\r\n" +
+				"  Tags: " + str(self.tags) + "\r\n" +
+				"  Host: " + str(self.host) + "\r\n" +
+				"  Status: " + str(self.status) + "\r\n" +
+				"  Config: " + str(self.config) + "\r\n" +
 				"  Created: at: " + str(self.created.at) + " by: " + str(self.created.by) + "\r\n" +
 				"  Modified: at: " + str(self.modified.at) + " by: " + str(self.modified.by) + "\r\n")
 
@@ -184,13 +184,12 @@ class Config:
 	def __init__(self, config_dict):
 		self.collection_method = config_dict.get("collection_method")
 		self.collection_type = config_dict.get("collection_type")
-		setattr(Config, config_dict.get("collection_type"), config_dict.get(config_dict.get("collection_type")))
+		setattr(self, config_dict.get("collection_type"), config_dict.get(config_dict.get("collection_type")))
 
 	def __str__(self):
 		return ("  Collection Method: " + self.collection_method + "\r\n" +
 				"  Collection Type: " + self.collection_type + "\r\n" +
-				"  " + self.collection_type.capitalize() + ": " + self.__dict[self.collection_type] + "\r\n" +
-				"  Updated: " + self.updated + "\r\n")
+				"  " + self.collection_type.capitalize() + ": " + str(self.__dict__[self.collection_type]) + "\r\n")
 
 
 class Status:
@@ -204,9 +203,9 @@ class Status:
 
 	def __str__(self):
 		return ("  Status: " + self.status + "\r\n" +
-				"  Details: " + self.details + "\r\n" +
-				"  Timestamp: " + self.timestamp + "\r\n" +
-				"  Updated: " + self.updated + "\r\n")
+				"  Details: " + str(self.details) + "\r\n" +
+				"  Timestamp: " + str(self.timestamp) + "\r\n" +
+				"  Updated: " + str(self.updated) + "\r\n")
 
 
 class AlertLogicAPI:
@@ -279,6 +278,7 @@ class AlertLogicAPI:
 			print "Error " + str(req.status_code)
 
 	def validateCredentials(self, credential):
+		"""Method which validate credentials"""
 		credentials_url = "/cloud_explorer/v1/validate_credentials"
 		jsonCredential = {"credential": credential}
 		payload = json.dumps(jsonCredential, default=AlertLogicAPI.jdefault)
@@ -359,12 +359,13 @@ class AlertLogicAPI:
 		if req.status_code == requests.codes.ok:
 			response = req.json()
 			self.sources = list()
-			for credObj in response.get("credentials"):
-				credential = Credential()
-				credential.fromDict(credObj.get("credential"))
-				self.credentials.append(credential)
+			for sourceObj in response.get("sources"):
+				source = Source()
+				source.fromDict(sourceObj.get("source"))
+				self.sources.append(source)
 		else:
 			print "Error " + str(req.status_code)
+
 	def createSource(self):
 		pass
 
@@ -374,6 +375,12 @@ def main():
 
 	print "Log in the system"
 	alAPI.login("admin@ozone.com", "1newP@ssword")
+
+	print "listing sources"
+	alAPI.listSources()
+	for source in alAPI.sources:
+		print source
+
 
 	"""
 	print "listing credentials"
@@ -403,12 +410,12 @@ def main():
 		print role
 	"""
 
-
+	"""
 	print "TOKEN:"
 	print alAPI.token
 	print "ACCOUNT ID:"
 	print alAPI.user.account_id
-
+	"""
 
 	"""
 	print "Validating credential"
