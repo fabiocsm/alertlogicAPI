@@ -31,11 +31,19 @@ class IamRole:
 		self.arn = arn
 		self.external_id = external_id
 
+	def __str__(self):
+		return ("ARN: "+self.arn + " \ " +
+			    "External ID: "+self.external_id)
+
 class AWSKey:
 	"""A class which represents the aws_key from the API"""
 	def __init__(self, access_key_id, secret_access_key):
 		self.access_key_id = access_key_id
 		self.secret_access_key = secret_access_key
+
+	def __str__(self):
+		return ("Access Key ID: "+self.access_key_id + " \ " +
+			    "Secret Access Key: "+self.secret_access_key)
 
 class Role:
 	"""A class which represent the role from the API"""
@@ -92,6 +100,18 @@ class Credential:
 		self.created = Record(credentialDict.get("created").get("at"), credentialDict.get("created").get("by"))
 		self.modified = Record(credentialDict.get("modified").get("at"), credentialDict.get("modified").get("by"))
 
+	def __str__(self):
+		printableString = ("ID: " + self.id + "\r\n" +
+						  "Name: " + self.name + "\r\n" +
+						  "Type: " + self.type + "\r\n")
+		if self.type == "aws_key":
+			printableString += "AWS-Key: " + str(self.aws_key) + "\r\n"
+		else:
+			printableString += "IAM Role: " + str(self.iam_role) + "\r\n"
+		printableString += ("Created: at: " + str(self.created.at) + " by: " + str(self.created.by) + "\r\n" +
+							"Modified: at: " + str(self.modified.at) + " by: " + str(self.modified.by) + "\r\n")
+		return printableString
+
 class Config:
 	def __init__(self):
 		pass
@@ -100,8 +120,9 @@ class AlertLogicAPI:
 	""" Class to make request to the Alert Logic API """
 	def __init__(self):
 		#The API base url
-		#self._BASE_URL = "https://integration.cloudinsight.alertlogic.com"
-		self._BASE_URL = "https://api.product.dev.alertlogic.com"
+		self._BASE_URL = "https://integration.cloudinsight.alertlogic.com"
+		#self._BASE_URL = "console.product.dev.alertlogic.com"
+		#self._BASE_URL = "https://api.product.dev.alertlogic.com"
 		self.token = ""
 		self.user = None
 		self.credentials = None
@@ -112,6 +133,7 @@ class AlertLogicAPI:
 		return o.__dict__
 
 	def login(self, username, password):
+		"""Method which generates the Token for the other requests"""
 		authenticate_url = "/aims/v1/authenticate"
 		req = requests.post(self._BASE_URL+authenticate_url, auth=HTTPBasicAuth(username, password))
 		if (req.status_code == requests.codes.ok):
@@ -122,10 +144,11 @@ class AlertLogicAPI:
 			print "Error " + str(req.status_code)
 
 	def createRoles(self, role):
+		"""getting a 403 Error"""
 		create_roles_url = "/aims/v1/" + role.account_id + "/roles"
 		headers = {"X-AIMS-Auth-Token": self.token}
 		roleDict = {"name": role.name, "permissions" : role.permissions}
-		payload = json.dumps(roleDict)
+		payload = json.dumps(roleDict, default=AlertLogicAPI.jdefault)
 		req = requests.post(self._BASE_URL+create_roles_url, headers=headers, data=payload)
 		if req.status_code == requests.codes.created:
 			response = req.json()
@@ -136,6 +159,7 @@ class AlertLogicAPI:
 			print "Error " + str(req.status_code)
 
 	def deleteRoles(self, roleID):
+		"""Untested"""
 		delete_role_url = "/aims/v1/" + self.user.account_id + "/roles/" + roleID
 		headers = {"X-AIMS-Auth-Token": self.token}
 		req = requests.delete(self._BASE_URL+delete_credentials_url, headers=headers)
@@ -148,6 +172,7 @@ class AlertLogicAPI:
 			print "Error " + str(req.status_code)
 
 	def listRoles(self):
+		"""Method which lists all the roles of the logged user"""
 		list_roles_url = "/aims/v1/" + self.user.account_id + "/roles"
 		headers = {"X-AIMS-Auth-Token": self.token}
 		req = requests.get(self._BASE_URL+list_roles_url, headers=headers)
@@ -195,7 +220,21 @@ class AlertLogicAPI:
 		else:
 			print "Error " + str(req.status_code)
 
-	def getCredentials(self, credentialID):
+	def listCredentials(self, filters=""):
+		get_credential_url = "/sources/v1/" + self.user.account_id + "/credentials?" + filters
+		headers = {"X-AIMS-Auth-Token": self.token}
+		req = requests.get(self._BASE_URL+get_credential_url, headers=headers)
+		if req.status_code == requests.codes.ok:
+			response = req.json()
+			self.credentials = []
+			for credObj in response.get("credentials"):
+				credential = Credential()
+				credential.fromDict(credObj.get("credential"))
+				self.roles.append(credential)
+		else:
+			print "Error " + str(req.status_code)
+
+	def getCredential(self, credentialID):
 		get_credential_url = "/sources/v1/" + self.user.account_id + "/credentials/" + credentialID
 		headers = {"X-AIMS-Auth-Token": self.token}
 		req = requests.get(self._BASE_URL+get_credential_url, headers=headers)
@@ -227,6 +266,11 @@ class AlertLogicAPI:
 def main():
 	alAPI = AlertLogicAPI()
 	alAPI.login("admin@ozone.com", "1newP@ssword")
+	print "listing credentials"
+	alAPI.listCredentials()
+	for credential in alAPI.roles:
+		print credential
+	"""
 	print "listing roles"
 	alAPI.listRoles()
 	for role in alAPI.roles:
@@ -242,17 +286,17 @@ def main():
 	alAPI.listRoles()
 	for role in alAPI.roles:
 		print role
-	"""print "TOKEN:"
-	print alAPI.token
-	print "ACCOUNT ID:"
-	print alAPI.user.account_id
-	credential = Credential("arn:aws:iam::481746159046:role/Administrator", "0000-0012", "Fabio Test", "iam_role")
+	print "TOKEN:"
+	print alAPI.token"""
+	"""print "ACCOUNT ID:"
+	print alAPI.user.account_id"""
+	"""
+	credential = Credential("arn:aws:iam::481746159046:role/CloudInsightRole", "10000001", "Fabio Test", "iam_role")
+	#credential = Credential("arn:aws:iam::948063967832:role/Barry-Product-Integration", "67013024", "Fabio Test", "iam_role")
 	if alAPI.validateCredentials(credential):
-		#alAPI.storeCredentials(credential)
-		print "Valid credential"
+		alAPI.storeCredentials(credential)
 	else:
 		print "Invalid credential" """
-
 if __name__ == "__main__":
 	main()
 
