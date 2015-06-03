@@ -32,8 +32,8 @@ class IamRole:
 		self.external_id = external_id
 
 	def __str__(self):
-		return ("ARN: "+self.arn + " \ " +
-			    "External ID: "+self.external_id)
+		return ("    ARN: "+self.arn + "\r\n" +
+			    "    External ID: " + self.external_id)
 
 class AWSKey:
 	"""A class which represents the aws_key from the API"""
@@ -42,8 +42,8 @@ class AWSKey:
 		self.secret_access_key = secret_access_key
 
 	def __str__(self):
-		return ("Access Key ID: "+self.access_key_id + " \ " +
-			    "Secret Access Key: "+self.secret_access_key)
+		return ("    Access Key ID: " + self.access_key_id + " \r\n " +
+			    "    Secret Access Key: " + self.secret_access_key)
 
 class Role:
 	"""A class which represent the role from the API"""
@@ -99,7 +99,7 @@ class Credential:
 		if self.type == "aws_key":
 			printableString += "AWS-Key: " + str(self.aws_key) + "\r\n"
 		else:
-			printableString += "IAM Role: " + str(self.iam_role) + "\r\n"
+			printableString += "IAM Role: \r\n" + str(self.iam_role) + "\r\n"
 		printableString += ("Created: at: " + str(self.created.at) + " by: " + str(self.created.by) + "\r\n" +
 							"Modified: at: " + str(self.modified.at) + " by: " + str(self.modified.by) + "\r\n")
 		return printableString
@@ -119,15 +119,13 @@ class Source:
         "type": "environment"
     }
 }"""
-	def __init__(self):
-		self.id = ""
+	def __init__(self, name = "", config = None):
 		self.type = "environment"
 		self.product_type = "outcomes"
-		self.name = ""
+		self.name = name
 		self.enabled = True
-		self.config = None
+		self.config = config
 		self.tags = list()
-		self.status = None
 
 	def fromDict(self, source_dict):
 		self.id = source_dict.get("id")
@@ -137,14 +135,19 @@ class Source:
 		self.tags.extend(source_dict.get("tags", list()))
 		self.type = source_dict.get("type")
 		self.host = source_dict.get("host")
-		self.status = Status(source_dict.get("status"))
-		self.config = Config(source_dict.get("config"))
+		if source_dict.get("status") != None:
+			self.status = Status(source_dict.get("status"))
+		else:
+			self.status = None
+		config = Config()
+		config.fromDict(source_dict.get("config"))
+		self.config = config
 		Record = namedtuple("Record", "at, by")
 		self.created = Record(source_dict.get("created").get("at"), source_dict.get("created").get("by"))
 		self.modified = Record(source_dict.get("modified").get("at"), source_dict.get("modified").get("by"))
 
 	def __str__(self):
-		return ("Config: " + "\r\n" +
+		return ("Source: " + "\r\n" +
 				"  ID: " + self.id + "\r\n" +
 				"  Name: " + self.name + "\r\n" +
 				"  Enabled: " + str(self.enabled) + "\r\n" +
@@ -152,8 +155,8 @@ class Source:
 				"  Type: " + self.type + "\r\n" +
 				"  Tags: " + str(self.tags) + "\r\n" +
 				"  Host: " + str(self.host) + "\r\n" +
-				"  Status: " + str(self.status) + "\r\n" +
-				"  Config: " + str(self.config) + "\r\n" +
+				"  Status: \r\n" + str(self.status) + "\r\n" +
+				"  Config: \r\n" + str(self.config) + "\r\n" +
 				"  Created: at: " + str(self.created.at) + " by: " + str(self.created.by) + "\r\n" +
 				"  Modified: at: " + str(self.modified.at) + " by: " + str(self.modified.by) + "\r\n")
 
@@ -181,19 +184,40 @@ class Config:
             }
         }
 		"""
-	def __init__(self, config_dict):
+	def __init__(self, collection_type = "", credential = None, scope = None, discover = True, scan = True):
+		self.collection_method = "api"
+		self.collection_type = collection_type
+		if credential != None:
+			third_config = ThirdConfig()
+			third_config.aws(credential, scope, discover, scan)
+			setattr(self, collection_type, third_config)
+
+	def fromDict(self, config_dict):
 		self.collection_method = config_dict.get("collection_method")
 		self.collection_type = config_dict.get("collection_type")
 		setattr(self, config_dict.get("collection_type"), config_dict.get(config_dict.get("collection_type")))
 
 	def __str__(self):
-		return ("  Collection Method: " + self.collection_method + "\r\n" +
-				"  Collection Type: " + self.collection_type + "\r\n" +
-				"  " + self.collection_type.capitalize() + ": " + str(self.__dict__[self.collection_type]) + "\r\n")
+		return ("    Collection Method: " + self.collection_method + "\r\n" +
+				"    Collection Type: " + self.collection_type + "\r\n" +
+				"    " + self.collection_type.capitalize() + ": " + str(self.__dict__[self.collection_type]) + "\r\n")
 
+class ThirdConfig:
+	"""Class which represents a third-party environment config"""
+	def aws(self, credential, scope = None, discover = True, scan = True):
+		self.credential = credential
+		self.discover = discover
+		self.scan = scan
+		self.scope = scope
+
+	def __str__(self):
+		return(" \r\n\t   Credential: " + str(self.credential) + "\r\n\t   "+
+			   "Discover: " + str(self.discover) + "\r\n\t   " +
+			   "Scan: " + str(self.scan) + "\r\n\t   " +
+			   "Scope: " + str(scope) + "\r\n\t")
 
 class Status:
-	"Class which represents the status of a source from the API"""
+	""" Class which represents the status of a source from the API"""
 	def __init__(self, status_dict):
 		self.status = status_dict.get("status")
 		self.details = list()
@@ -202,10 +226,10 @@ class Status:
 		self.updated = status_dict.get("updated")
 
 	def __str__(self):
-		return ("  Status: " + self.status + "\r\n" +
-				"  Details: " + str(self.details) + "\r\n" +
-				"  Timestamp: " + str(self.timestamp) + "\r\n" +
-				"  Updated: " + str(self.updated) + "\r\n")
+		return ("    Status: " + str(self.status) + "\r\n" +
+				"    Details: " + str(self.details) + "\r\n" +
+				"    Timestamp: " + str(self.timestamp) + "\r\n" +
+				"    Updated: " + str(self.updated))
 
 
 class AlertLogicAPI:
@@ -216,8 +240,9 @@ class AlertLogicAPI:
 		self._BASE_URL = "https://api.product.dev.alertlogic.com"
 		self.token = ""
 		self.user = None
-		self.credentials = None
+		self.credentials = list()
 		self.roles = list()
+		self.sources = list()
 
 	@staticmethod
 	def jdefault(o):
@@ -295,7 +320,7 @@ class AlertLogicAPI:
 			print "Error "+ str(req.status_code)
 			return False
 
-	def storeCredentials(self, credential):
+	def createCredentials(self, credential):
 		store_credential_url = "/sources/v1/" + self.user.account_id + "/credentials"
 		jsonCredential = {"credential": credential}
 		payload = json.dumps(jsonCredential, default=AlertLogicAPI.jdefault)
@@ -305,8 +330,10 @@ class AlertLogicAPI:
 		print str(req.status_code)
 		if req.status_code == requests.codes.created:
 			credential = Credential()
-			self.credential = credential.fromDict(req.json().get("credential"))
+			credential.fromDict(req.json().get("credential"))
+			self.credential = credential
 			print "Credential Created"
+			print self.credential
 		elif req.status_code == requests.codes.bad_request:
 			print "Credential not created. Bad request"
 		else:
@@ -330,11 +357,11 @@ class AlertLogicAPI:
 		get_credential_url = "/sources/v1/" + self.user.account_id + "/credentials/" + credential_id
 		headers = {"X-AIMS-Auth-Token": self.token}
 		req = requests.get(self._BASE_URL+get_credential_url, headers=headers)
-		print req.text
-		print str(req.status_code)
 		if req.status_code == requests.codes.ok:
 			credential = Credential()
-			self.credential = credential.fromDict(req.json().get("credential"))
+			credential.fromDict(req.json().get("credential"))
+			self.credential = credential
+			print self.credential
 		elif req.status_code == requests.codes.not_found:
 			print "Credential not found"
 		else:
@@ -366,8 +393,47 @@ class AlertLogicAPI:
 		else:
 			print "Error " + str(req.status_code)
 
-	def createSource(self):
-		pass
+	def createSource(self, source):
+		create_source_url = "/sources/v1/" + self.user.account_id + "/sources"
+		json_source = {"source": source}
+		payload = json.dumps(json_source, default=AlertLogicAPI.jdefault)
+		headers = {"X-AIMS-Auth-Token": self.token, "Content-Type": "application/json"}
+		req = requests.post(self._BASE_URL+create_source_url, headers=headers, data=payload)
+		if req.status_code == requests.codes.created:
+			response = req.json()
+			source = Source()
+			source.fromDict(response.get("source"))
+			self.sources.append(source)
+			print "Source Created"
+			print source
+		else:
+			print "Error " + str(req.status_code)
+
+	def getSource(self, source_id):
+		get_source_url = "/sources/v1/" + self.user.account_id + "/sources/" + source_id
+		headers = {"X-AIMS-Auth-Token": self.token}
+		req = requests.get(self._BASE_URL+get_source_url, headers=headers)
+		if req.status_code == requests.codes.ok:
+			source = Source()
+			source.fromDict(req.json().get("source"))
+			self.source = source
+			print self.source
+		elif req.status_code == requests.codes.not_found:
+			print "Source not found"
+		else:
+			print "Error "+ str(req.status_code)
+
+	def deleteSource(self, source_id):
+		"""Method which deletes a source"""
+		delete_source_url = "/sources/v1/" + self.user.account_id + "/sources/" + source_id
+		headers = {"X-AIMS-Auth-Token": self.token}
+		req = requests.delete(self._BASE_URL+delete_source_url, headers=headers)
+		if req.status_code == requests.codes.no_content:
+			self.source = None
+			print "Source deleted"
+			print source_id
+		else:
+			print "Error " + str(req.status_code)
 
 def main():
 	#instance of the API object
@@ -376,17 +442,45 @@ def main():
 	print "Log in the system"
 	alAPI.login("admin@ozone.com", "1newP@ssword")
 
+	"""
+	print "Getting credential"
+	alAPI.getCredential("EACBCFFB-48C0-4F16-A023-8C11EA079FCF")
+
+	print "Creating a source"
+	include = {"include": [{"type": "vpc","key": "/aws/us-east-1/vpc/vpc-1234"}]}
+	config = Config("aws", alAPI.credential, include, False, False)
+	source = Source("Source-Test-Fabio", config)
+	alAPI.createSource(source)
+	"""
+
+	"""
+	print "Getting Source"
+	alAPI.getSource("5F5D261D-1790-1005-894D-1247088D0863")
+	"""
+
+	"""
 	print "listing sources"
 	alAPI.listSources()
 	for source in alAPI.sources:
 		print source
+	"""
 
+	#"""
+	print "Deleting Source"
+	alAPI.deleteSource("BA2B9372-17A4-1005-894D-1247088D0863")
+	#"""
 
 	"""
 	print "listing credentials"
 	alAPI.listCredentials()
-	for credential in alAPI.credentials:
+	for idx, credential in enumerate(alAPI.credentials):
+		print "Credential number "+str(idx)
 		print credential
+	"""
+
+	"""
+	print "Getting credential"
+	alAPI.getCredential("EACBCFFB-48C0-4F16-A023-8C11EA079FCF")
 	"""
 
 	"""
@@ -419,10 +513,11 @@ def main():
 
 	"""
 	print "Validating credential"
-	credential = Credential("arn:aws:iam::481746159046:role/CloudInsightRole", "10000001", "Fabio Test", "iam_role")
+	#credential = Credential("arn:aws:iam::481746159046:role/CloudInsightRole", "10000001", "Fabio Test", "iam_role")
 	#credential = Credential("arn:aws:iam::948063967832:role/Barry-Product-Integration", "67013024", "Fabio Test", "iam_role")
-	if alAPI.validateCredentials(credential):
-		alAPI.storeCredentials(credential)
+	if alAPI.validateCredentials(alAPI.credentials[1]):
+		#alAPI.storeCredentials(credential)
+		print "Valid credential"
 	else:
 		print "Invalid credential"
 	"""
