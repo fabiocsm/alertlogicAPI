@@ -28,7 +28,7 @@ class User:
 
 class Credential:
 	"""A class which represents the credential from the API"""
-	def __init__(self, type = "", name = "", dict_cred_data):
+	def __init__(self, type = "", name = "", dict_cred_data = {}):
 		self.id = ""
 		self.name = name
 		self.type = type
@@ -126,10 +126,10 @@ class ThirdConfig:
 		self.scope = scope
 
 	def __str__(self):
-		return(" \r\n\t   Credential: " + str(self.credential) + "\r\n\t   "+
-			   "Discover: " + str(self.discover) + "\r\n\t   " +
-			   "Scan: " + str(self.scan) + "\r\n\t   " +
-			   "Scope: " + str(scope) + "\r\n\t")
+		return(" \r\n\t  Credential: \r\n\t " + str(self.credential) + "\r\n\t   "+
+			   "   Discover: " + str(self.discover) + "\r\n\t   " +
+			   "   Scan: " + str(self.scan) + "\r\n\t   " +
+			   "   Scope: " + str(self.scope) + "\r\n\t")
 
 class Status:
 	""" Class which represents the status of a source from the API"""
@@ -151,13 +151,15 @@ class AlertLogicAPI:
 	""" Class to make request to the Alert Logic API """
 	def __init__(self, username, password):
 		#The API base url
-		self._BASE_URL = "https://api.cloudinsight.alertlogic.com"
+		#self._BASE_URL = "https://api.cloudinsight.alertlogic.com"
 		#self._BASE_URL = "https://integration.cloudinsight.alertlogic.com"
-		#self._BASE_URL = "https://api.product.dev.alertlogic.com"
+		self._BASE_URL = "https://api.product.dev.alertlogic.com"
 		self.login(self, username, password)
 		self.credentials = list()
 		self.roles = list()
 		self.sources = list()
+		self.credential = None
+		self.source = None
 
 	@staticmethod
 	def jdefault(o):
@@ -207,9 +209,9 @@ class AlertLogicAPI:
 			req.raise_for_status()
 			return False
 
-	def createCredential(self, type = "", name = "", dict_cred_data):
+	def createCredential(self, type, name, dict_cred_data):
 		credential = Credential(type, name, dict_cred_data)
-		if self.validateCredential(credential):
+		if self.validateCredential(self, credential):
 			create_credential_url = "/sources/v1/" + self.user.account_id + "/credentials"
 			jsonCredential = {"credential": credential}
 			payload = json.dumps(jsonCredential, default=self.jdefault)
@@ -291,9 +293,9 @@ class AlertLogicAPI:
 			print "Error " + str(req.status_code)
 			req.raise_for_status()
 
-	def createSource(self, name, collection_type, credential, include, discover, scan):
+	def createSource(self, name, collection_type, credential, scope, discover, scan):
 		"""Method which creates a source using the API"""
-		config = Config(collection_type, credential, include, discover, scan)
+		config = Config(collection_type, credential, scope, discover, scan)
 		source = Source(name, config)
 		create_source_url = "/sources/v1/" + self.user.account_id + "/sources"
 		json_source = {"source": source}
@@ -340,12 +342,121 @@ class AlertLogicAPI:
 		else:
 			print "Error " + str(req.status_code)
 			req.raise_for_status()
+def options():
+	print "\r\n"
+	print "=== MENU ==="
+	print "1. List Sources"
+	print "2. List Credentials"
+	print "3. Create Credential"
+	print "4. Create Source"
+	print "5. Delete Credential"
+	print "6. Delete Source"
+	print "7. User information"
+	print "\r\n"
+	opt = input("Select an option or 0 to exit: ")
+	print "\r\n"
+	return opt
 
 def main():
 	#instance of the API object
+	print "Welcome to the Alert Logic API"
+
+	print "Please Enter your login information"
+
+	#username = raw_input("Username: ")
+	#password = raw_input("Passord: ")
+	username = "admin@ozone.com"
+	password = "1newP@ssword"
 	try:
-		print "Log in the system"
-		alAPI = AlertLogicAPI("admin@ozone.com", "1newP@ssword")
+		print "Logging in the system"
+		alAPI = AlertLogicAPI(username, password)
+		menu = options()
+		while menu != 0:
+			if menu == 1:
+				print "Listing sources"
+				for idx, source in enumerate(alAPI.listSources("source.type=environment")):
+					print "Source number " + str(idx)
+					print source
+			elif menu == 2:
+				print "Listing credentials"
+				for idx, lcredential in enumerate(alAPI.listCredentials()):
+					print "Credential number " + str(idx)
+					print lcredential
+			elif menu == 3:
+				print "Creating credential"
+				print "Type: iam_role"
+				type = raw_input("Enter the credential type: ")
+				print "ARN: arn:aws:iam::948063967832:role/Barry-Product-Integration"
+				arn = raw_input("Enter the ARN: ")
+				print "External ID: 67013024"
+				external_id = raw_input("Enter the external id: ")
+				credential_name = raw_input("Enter a credential name: ")
+				dict_cred_data = { "arn" : arn, "external_id" : external_id }
+				credential = alAPI.createCredential(type, credential_name, dict_cred_data)
+			elif menu == 4:
+				if len(alAPI.credentials) == 0:
+					print "Listing credentials"
+					for idx, lcredential in enumerate(alAPI.listCredentials()):
+						print "Credential number " + str(idx)
+						print lcredential
+				print "Creating a source"
+				idx = input("Enter the number of the credential: ")
+				try:
+					credential = alAPI.credentials[idx]
+				except IndexError as e:
+					print "Invalid number"
+					print e
+				except TypeError as e:
+					print "Enter a number"
+					print e
+				if credential != None:
+					source_name = raw_input("Source name: ")
+					print "Collection Type: aws"
+					collection_type = raw_input("Collection type: ")
+					#include = {"include": [{"type": "vpc","key": "/aws/us-east-1/vpc/vpc-1234"}]}
+					include = {}
+					discover = bool(raw_input("Discover? Yes or empty for not: "))
+					scan = bool(raw_input("Scan? Yes or empty for not: "))
+					print alAPI.createSource(source_name, collection_type, credential, include, discover, scan)
+				else:
+					print "You must created or select a credential first"
+			elif menu == 5:
+				if len(alAPI.credentials) >= 1:
+					print "Deleting Credential"
+					idx = input("Enter the number of the credential: ")
+					try:
+						alAPI.deleteCredential(alAPI.credentials[idx].id)
+					except IndexError as e:
+						print "Invalid number"
+						print e
+					except TypeError as e:
+						print "Enter a number"
+						print e
+				else:
+					print "List the sources first and check the source number"
+			elif menu == 6:
+				if len(alAPI.sources) >= 1:
+					print "Deleting Source"
+					idx = input("Enter the number of the source: ")
+					try:
+						alAPI.deleteSource(alAPI.sources[idx].id)
+					except IndexError as e:
+						print "Invalid number"
+						print e
+					except TypeError as e:
+						print "Enter a number"
+						print e
+				else:
+					print "List the sources first and check the source number"
+			elif menu == 7:
+				print "TOKEN:"
+				print alAPI.token
+				print "User Information"
+				print alAPI.user
+			else:
+				print "Invalid option"
+			menu = options()
+
 		"""
 		print "TOKEN:"
 		print alAPI.token
@@ -363,7 +474,7 @@ def main():
 		"""
 		"""
 		print "Deleting Source"
-		alAPI.deleteSource("BA2B9372-17A4-1005-894D-1247088D0863")
+		alAPI.deleteSource("269769CD-17B8-1005-894D-1247088D0863")
 		"""
 		"""
 		print "listing credentials"
@@ -377,16 +488,7 @@ def main():
 		"""
 		"""
 		print "Deleting Credential"
-		alAPI.deleteCredential("D4CB7E3C-B090-48E7-B933-2A913DAF9480")
-		"""
-		"""
-		print "Creating credential"
-		arn = "arn:aws:iam::948063967832:role/Barry-Product-Integration"
-		external_id = "67013024"
-		credential_name = "Fabio Credential"
-		type = "iam_role"
-		dict_cred_data = { "arn" : arn, "external_id" : external_id }
-		credential = alAPI.createCredential(type, credential_name, dict_cred_data)
+		alAPI.deleteCredential("1D42C9E8-A523-4FBD-BA6F-FB0FE0D22DD5")
 		"""
 		"""
 		print "Creating a source"
@@ -398,39 +500,22 @@ def main():
 		print alAPI.createSource(source_name, collection_type, credential, include, discover, scan)
 		print "\r\n"
 		"""
-		#"""
+		"""
 		print "listing sources"
 		for idx, source in enumerate(alAPI.listSources()):
-			print "Source number" + str(idx)
+			print "Source number " + str(idx)
 			print source
-		#"""
+		"""
 
-		#"""
+		"""
 		print "listing credentials"
 		for idx, lcredential in enumerate(alAPI.listCredentials()):
 			print "Credential number " + str(idx)
 			print lcredential
-		#"""
+		"""
 
 	except requests.exceptions.RequestException as e:
 		print e
 
 if __name__ == "__main__":
 	main()
-
-# Script to create an environment
-
-# 1) Authenticate
-# 	1.1 Send a request to /aims/v1/authenticate
-#		(header-field: Authorization - http basic auth string)
-#	1.2 Use the received token on the header as x-aims-auth-token
-#		for all the other requests
-# 2) Create credentials
-#	2.1 Read user credentials
-#	2.2 Validade the user credentials
-#		2.2.1 Send a request to /cloud_explorer/v1/validate_credentials
-#	2.3 Store user credentials
-#		2.3.1 Send a request to /sources/v1/:account_id/credential
-# 3) Create environment
-#	3.1 Create the source
-#		3.1.1 Send a request to /sources/v1/:account_id/sources
