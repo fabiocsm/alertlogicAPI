@@ -26,34 +26,14 @@ class User:
 				"  Created: at: " + str(self.created.at) + " by: " + str(self.created.by) + "\r\n" +
 				"  Modified: at: " + str(self.modified.at) + " by: " + str(self.modified.by) + "\r\n")
 
-class IamRole:
-	"""A class which represents the iam_role from the API"""
-	def __init__(self, arn, external_id):
-		self.arn = arn
-		self.external_id = external_id
-
-	def __str__(self):
-		return ("    ARN: "+self.arn + "\r\n" +
-			    "    External ID: " + self.external_id)
-
-class AWSKey:
-	"""A class which represents the aws_key from the API"""
-	def __init__(self, access_key_id, secret_access_key):
-		self.access_key_id = access_key_id
-		self.secret_access_key = secret_access_key
-
-	def __str__(self):
-		return ("    Access Key ID: " + self.access_key_id + " \r\n " +
-			    "    Secret Access Key: " + self.secret_access_key)
-
 class Credential:
 	"""A class which represents the credential from the API"""
-	def __init__(self, arn = "", external_id = "", name = "", type = "", access_key_id = "", secret_access_key = ""):
+	def __init__(self, type = "", name = "", dict_cred_data):
 		self.id = ""
 		self.name = name
 		self.type = type
-		self.iam_role = IamRole(arn, external_id)
-		self.aws_key = AWSKey(access_key_id, secret_access_key)
+		if type != "":
+			setattr(self, self.type, dict_cred_data)
 		self.created = None
 		self.modified = None
 
@@ -61,25 +41,18 @@ class Credential:
 		self.id = credential_dict.get("id", "")
 		self.name = credential_dict.get("name", "")
 		self.type = credential_dict.get("type", "")
-		if self.type == "iam_role":
-			self.iam_role = IamRole(credential_dict.get("iam_role").get("arn"), credential_dict.get("iam_role").get("external_id"))
-		elif self.type == "aws_key":
-			self.aws_key = AWSKey(credential_dict.get("aws_key").get("access_key_id"), credential_dict.get("aws_key").get("secret_access_key"))
+		setattr(self, credential_dict.get("type"), credential_dict.get(credential_dict.get("type")))
 		Record = namedtuple("Record", "at, by")
 		self.created = Record(credential_dict.get("created").get("at"), credential_dict.get("created").get("by"))
 		self.modified = Record(credential_dict.get("modified").get("at"), credential_dict.get("modified").get("by"))
 
 	def __str__(self):
-		printableString = ("ID: " + self.id + "\r\n" +
-						  "Name: " + self.name + "\r\n" +
-						  "Type: " + self.type + "\r\n")
-		if self.type == "aws_key":
-			printableString += "AWS-Key: " + str(self.aws_key) + "\r\n"
-		else:
-			printableString += "IAM Role: \r\n" + str(self.iam_role) + "\r\n"
-		printableString += ("Created: at: " + str(self.created.at) + " by: " + str(self.created.by) + "\r\n" +
-							"Modified: at: " + str(self.modified.at) + " by: " + str(self.modified.by) + "\r\n")
-		return printableString
+		return ("ID: " + self.id + "\r\n" +
+				"Name: " + self.name + "\r\n" +
+				"Type: " + self.type + "\r\n" +
+				self.type.capitalize() + ": " + str(self.__dict__[self.type]) + "\r\n" +
+				"Created: at: " + str(self.created.at) + " by: " + str(self.created.by) + "\r\n" +
+				"Modified: at: " + str(self.modified.at) + " by: " + str(self.modified.by) + "\r\n")
 
 class Source:
 	"""Class which represents a source from the API"""
@@ -176,12 +149,12 @@ class Status:
 
 class AlertLogicAPI:
 	""" Class to make request to the Alert Logic API """
-	def __init__(self):
+	def __init__(self, username, password):
 		#The API base url
+		self._BASE_URL = "https://api.cloudinsight.alertlogic.com"
 		#self._BASE_URL = "https://integration.cloudinsight.alertlogic.com"
-		self._BASE_URL = "https://api.product.dev.alertlogic.com"
-		self.token = ""
-		self.user = None
+		#self._BASE_URL = "https://api.product.dev.alertlogic.com"
+		self.login(self, username, password)
 		self.credentials = list()
 		self.roles = list()
 		self.sources = list()
@@ -190,6 +163,7 @@ class AlertLogicAPI:
 	def jdefault(o):
 		return o.__dict__
 
+	@staticmethod
 	def login(self, username, password):
 		"""Method which generates the Token for the other requests and gets the user information"""
 		authenticate_url = "/aims/v1/authenticate"
@@ -207,6 +181,7 @@ class AlertLogicAPI:
 			print "Error " + str(req.status_code)
 			req.raise_for_status()
 
+	@staticmethod
 	def validateCredential(self, credential):
 		"""Method which validate credentials"""
 		credentials_url = "/cloud_explorer/v1/validate_credentials"
@@ -232,24 +207,29 @@ class AlertLogicAPI:
 			req.raise_for_status()
 			return False
 
-	def createCredential(self, credential):
-		create_credential_url = "/sources/v1/" + self.user.account_id + "/credentials"
-		jsonCredential = {"credential": credential}
-		payload = json.dumps(jsonCredential, default=self.jdefault)
-		headers = {"X-AIMS-Auth-Token": self.token, "Content-Type": "application/json"}
-		req = requests.post(self._BASE_URL+create_credential_url, headers=headers, data=payload)
-		if req.status_code == requests.codes.created:
-			credential = Credential()
-			credential.fromDict(req.json().get("credential"))
-			self.credential = credential
-			print "Credential Created"
-			return self.credential
-		elif req.status_code == requests.codes.bad_request:
-			print "Credential not created. Bad request"
-			req.raise_for_status()
+	def createCredential(self, type = "", name = "", dict_cred_data):
+		credential = Credential(type, name, dict_cred_data)
+		if self.validateCredential(credential):
+			create_credential_url = "/sources/v1/" + self.user.account_id + "/credentials"
+			jsonCredential = {"credential": credential}
+			payload = json.dumps(jsonCredential, default=self.jdefault)
+			headers = {"X-AIMS-Auth-Token": self.token, "Content-Type": "application/json"}
+			req = requests.post(self._BASE_URL+create_credential_url, headers=headers, data=payload)
+			if req.status_code == requests.codes.created:
+				credential = Credential()
+				credential.fromDict(req.json().get("credential"))
+				self.credential = credential
+				print "Credential Created"
+				return self.credential
+			elif req.status_code == requests.codes.bad_request:
+				print "Credential not created. Bad request"
+				req.raise_for_status()
+			else:
+				print "Error " + str(req.status_code)
+				req.raise_for_status()
 		else:
-			print "Error " + str(req.status_code)
-			req.raise_for_status()
+			print "Credential not created"
+			return None
 
 	def listCredentials(self, filters=""):
 		list_credentials_url = "/sources/v1/" + self.user.account_id + "/credentials?" + filters
@@ -311,8 +291,10 @@ class AlertLogicAPI:
 			print "Error " + str(req.status_code)
 			req.raise_for_status()
 
-	def createSource(self, source):
+	def createSource(self, name, collection_type, credential, include, discover, scan):
 		"""Method which creates a source using the API"""
+		config = Config(collection_type, credential, include, discover, scan)
+		source = Source(name, config)
 		create_source_url = "/sources/v1/" + self.user.account_id + "/sources"
 		json_source = {"source": source}
 		payload = json.dumps(json_source, default=self.jdefault)
@@ -361,70 +343,61 @@ class AlertLogicAPI:
 
 def main():
 	#instance of the API object
-	alAPI = AlertLogicAPI()
 	try:
 		print "Log in the system"
-		alAPI.login("admin@ozone.com", "1newP@ssword")
-
-		"""
-		print "Getting Source"
-		alAPI.getSource("5F5D261D-1790-1005-894D-1247088D0863")
-		"""
-
-		#"""
-		print "listing sources"
-		for idx, source in enumerate(alAPI.listSources()):
-			print "Source number" + str(idx)
-			print source
-		#"""
-
-		"""
-		print "Deleting Source"
-		alAPI.deleteSource("BA2B9372-17A4-1005-894D-1247088D0863")
-		"""
-
-		"""
-		print "Getting credential"
-		alAPI.getCredential("EACBCFFB-48C0-4F16-A023-8C11EA079FCF")
-		"""
-
-		"""
-		print "Getting credential"
-		alAPI.getCredential("EACBCFFB-48C0-4F16-A023-8C11EA079FCF")
-		"""
-
+		alAPI = AlertLogicAPI("admin@ozone.com", "1newP@ssword")
 		"""
 		print "TOKEN:"
 		print alAPI.token
 		print alAPI.user
 		"""
-
+		"""
+		print "listing sources"
+		for idx, source in enumerate(alAPI.listSources()):
+			print "Source number" + str(idx)
+			print source
+		"""
+		"""
+		print "Getting Source"
+		gotSource = alAPI.getSource("5F5D261D-1790-1005-894D-1247088D0863")
+		"""
+		"""
+		print "Deleting Source"
+		alAPI.deleteSource("BA2B9372-17A4-1005-894D-1247088D0863")
+		"""
 		"""
 		print "listing credentials"
 		for idx, lcredential in enumerate(alAPI.listCredentials()):
 			print "Credential number " + str(idx)
 			print lcredential
 		"""
-
-		#"""
-		print "Validating credential"
-		#credential = Credential("arn:aws:iam::481746159046:role/CloudInsightRole", "10000001", "Fabio Test", "iam_role")
-		credential = Credential("arn:aws:iam::948063967832:role/Barry-Product-Integration", "67013024", "Fabio Test", "iam_role")
-		if alAPI.validateCredential(credential):
-			vcredential = alAPI.createCredential(credential)
-			#"""
-			print "Creating a source"
-			include = {"include": [{"type": "vpc","key": "/aws/us-east-1/vpc/vpc-1234"}]}
-			config = Config("aws", vcredential, include, False, False)
-			source = Source("Env-Test-Fabio", config)
-			print alAPI.createSource(source)
-			print "\r\n"
-			#"""
-		else:
-			print "Invalid credential"
-			exit(1)
-		#"""
-
+		"""
+		print "Getting credential"
+		alAPI.getCredential("EACBCFFB-48C0-4F16-A023-8C11EA079FCF")
+		"""
+		"""
+		print "Deleting Credential"
+		alAPI.deleteCredential("D4CB7E3C-B090-48E7-B933-2A913DAF9480")
+		"""
+		"""
+		print "Creating credential"
+		arn = "arn:aws:iam::948063967832:role/Barry-Product-Integration"
+		external_id = "67013024"
+		credential_name = "Fabio Credential"
+		type = "iam_role"
+		dict_cred_data = { "arn" : arn, "external_id" : external_id }
+		credential = alAPI.createCredential(type, credential_name, dict_cred_data)
+		"""
+		"""
+		print "Creating a source"
+		source_name = "Env-Test-Fabio2"
+		collection_type = "aws"
+		include = {"include": [{"type": "vpc","key": "/aws/us-east-1/vpc/vpc-1234"}]}
+		discover = True
+		scan = True
+		print alAPI.createSource(source_name, collection_type, credential, include, discover, scan)
+		print "\r\n"
+		"""
 		#"""
 		print "listing sources"
 		for idx, source in enumerate(alAPI.listSources()):
@@ -432,18 +405,12 @@ def main():
 			print source
 		#"""
 
-
-		"""
-		print "Deleting Credential"
-		alAPI.deleteCredential("D4CB7E3C-B090-48E7-B933-2A913DAF9480")
-		"""
-
-		"""
+		#"""
 		print "listing credentials"
 		for idx, lcredential in enumerate(alAPI.listCredentials()):
 			print "Credential number " + str(idx)
 			print lcredential
-		"""
+		#"""
 
 	except requests.exceptions.RequestException as e:
 		print e
