@@ -3,6 +3,14 @@ import json
 import requests
 from requests.auth import HTTPBasicAuth
 from collections import namedtuple
+from bunch import *
+
+class APIObject(Bunch):
+	def __init__(self, obj):
+		Bunch.__init__(self, obj)
+
+	def __str__(self):
+		return (json.dumps(self, indent = 3,  sort_keys=True))
 
 class User:
 	"""A class which represent the user from the API"""
@@ -320,8 +328,9 @@ class AlertLogicAPI:
 		headers = {"X-AIMS-Auth-Token": self.token}
 		req = requests.get(self._BASE_URL+get_source_url, headers=headers)
 		if req.status_code == requests.codes.ok:
-			source = Source()
-			source.fromDict(req.json().get("source"))
+			#source = Source()
+			#source.fromDict(req.json().get("source"))
+			source = APIObject(req.json().get("source"))
 			self.source = source
 			return self.source
 		elif req.status_code == requests.codes.not_found:
@@ -342,6 +351,20 @@ class AlertLogicAPI:
 		else:
 			print "Error " + str(req.status_code)
 			req.raise_for_status()
+
+def printSource(source):
+		return ("Source: " + "\r\n" +
+				"  ID: " + source.id + "\r\n" +
+				"  Name: " + source.name + "\r\n" +
+				"  Enabled: " + str(source.enabled) + "\r\n" +
+				"  Product Type: " + source.product_type + "\r\n" +
+				"  Type: " + source.type + "\r\n" +
+				"  Tags: " + str(source.tags) + "\r\n" +
+				"  Host: " + str(source.host) + "\r\n" +
+				"  Status: \r\n" + str(source.status) + "\r\n" +
+				"  Config: \r\n" + str(source.config) + "\r\n" +
+				"  Created: at: " + str(source.created.at) + " by: " + str(source.created.by) + "\r\n" +
+				"  Modified: at: " + str(source.modified.at) + " by: " + str(source.modified.by) + "\r\n")
 def options():
 	print "\r\n"
 	print "=== MENU ==="
@@ -370,6 +393,9 @@ def main():
 	try:
 		print "Logging in the system"
 		alAPI = AlertLogicAPI(username, password)
+		source = alAPI.getSource("7343BFF0-E22F-44D5-8E15-CD11F20BFBA7")
+		print source
+		"""
 		menu = options()
 		while menu != 0:
 			if menu == 1:
@@ -413,11 +439,11 @@ def main():
 					source_name = raw_input("Source name: ")
 					print "Collection Type: aws"
 					collection_type = raw_input("Collection type: ")
-					#include = {"include": [{"type": "vpc","key": "/aws/us-east-1/vpc/vpc-1234"}]}
-					include = {}
+					#scope = {"include": [{"type": "vpc","key": "/aws/us-east-1/vpc/vpc-1234"}]}
+					scope = {}
 					discover = bool(raw_input("Discover? Yes or empty for not: "))
 					scan = bool(raw_input("Scan? Yes or empty for not: "))
-					print alAPI.createSource(source_name, collection_type, credential, include, discover, scan)
+					print alAPI.createSource(source_name, collection_type, credential, scope, discover, scan)
 				else:
 					print "You must created or select a credential first"
 			elif menu == 5:
@@ -456,7 +482,7 @@ def main():
 			else:
 				print "Invalid option"
 			menu = options()
-
+		"""
 		"""
 		print "TOKEN:"
 		print alAPI.token
@@ -506,7 +532,6 @@ def main():
 			print "Source number " + str(idx)
 			print source
 		"""
-
 		"""
 		print "listing credentials"
 		for idx, lcredential in enumerate(alAPI.listCredentials()):
