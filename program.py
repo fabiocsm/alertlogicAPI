@@ -13,24 +13,47 @@ def options():
 	print "6. Delete Source"
 	print "7. User information"
 	print "\r\n"
-	opt = input("Select an option or 0 to exit: ")
+	opt = None
+	while not opt:
+		try:
+			opt = int(raw_input("Select an option or 0 to exit: "))
+			break
+		except ValueError:
+			print 'Enter a number'
 	print "\r\n"
 	return opt
+
+loginAttempt = 0
+
+def login(alAPI):
+	global loginAttempt
+	loginAttempt += 1
+	if loginAttempt == 5:
+		print "Login Failed, program closed!"
+		exit(1)
+	print "System Login"
+	print "Please Enter your login information"
+	username = raw_input("Username: ")
+	password = raw_input("Password: ")
+	try:
+		success = alAPI.login(username, password)
+		return success
+	except requests.exceptions.RequestException as e:
+		print e
 
 def main():
 	#instance of the API object
 	print "Welcome to the Alert Logic API"
-
-	print "Please Enter your login information"
-
-	username = raw_input("Username: ")
-	password = raw_input("Passord: ")
+	alAPI = AlertLogicAPI()
 	#username = "admin@ozone.com"
 	#password = "1newP@ssword"
+	success = False
+	while not success:
+		try:
+			success = login(alAPI)
+		except requests.exceptions.RequestException as e:
+			print e
 	try:
-
-		print "Logging in the system"
-		alAPI = AlertLogicAPI(username, password)
 		menu = options()
 		while menu != 0:
 			if menu == 1:
@@ -61,26 +84,33 @@ def main():
 						print "Credential number " + str(idx)
 						print lcredential
 				print "Creating a source"
-				idx = input("Enter the number of the credential: ")
+				credential = None
+				idx = None
+				while not credential and not idx:
+					try:
+						idx = int(raw_input("Enter the number of the credential: "))
+						try:
+							if idx < 0:
+								raise IndexError
+							credential = alAPI.credentials[idx]
+						except IndexError:
+							print "Invalid number"
+							idx = None
+						except TypeError:
+							print "Enter a number"
+					except ValueError:
+						print "Enter a number"
+				source_name = raw_input("Source name: ")
+				print "Collection Type: aws"
+				collection_type = raw_input("Collection type: ")
+				scope = {}
+				discover = bool(raw_input("Discover? Yes or empty for not: "))
+				scan = bool(raw_input("Scan? Yes or empty for not: "))
 				try:
-					credential = alAPI.credentials[idx]
-				except IndexError as e:
-					print "Invalid number"
-					print e
-				except TypeError as e:
-					print "Enter a number"
-					print e
-				if credential != None:
-					source_name = raw_input("Source name: ")
-					print "Collection Type: aws"
-					collection_type = raw_input("Collection type: ")
-					scope = {}
-					discover = bool(raw_input("Discover? Yes or empty for not: "))
-					scan = bool(raw_input("Scan? Yes or empty for not: "))
 					source = alAPI.createSource(source_name, collection_type, credential, scope, discover, scan) #Creating an environment
 					print source
-				else:
-					print "You must created or select a credential first"
+				except requests.exceptions.RequestException as e:
+					print e
 			elif menu == 5:
 				if len(alAPI.credentials) >= 1:
 					print "Deleting Credential"

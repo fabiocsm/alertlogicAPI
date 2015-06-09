@@ -59,7 +59,7 @@ def main():
 	print "Deleting Credential"
 	alAPI.deleteCredential("7E630D12-8C5A-4FCB-BB04-459C26A31377")
 	"""
-	#"""
+	"""
 	print "Creating a source"
 	print "Listing credentials"
 	for idx, lcredential in enumerate(alAPI.listCredentials()):
@@ -85,7 +85,7 @@ def main():
 		print source
 	else:
 		print "You must created or select a credential first"
-	#"""
+	"""
 
 if __name__ == "__main__":
 	main()
