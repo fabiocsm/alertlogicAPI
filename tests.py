@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import alertLogicAPI
+from alertLogicAPI import AlertLogicAPI
 
 def main():
 	username = "admin@ozone.com"
@@ -7,11 +7,11 @@ def main():
 	print "Logging in the system"
 	alAPI = AlertLogicAPI(username, password)
 
-	#"""
+	"""
 	print "TOKEN:"
 	print alAPI.token
 	print alAPI.user
-	#"""
+	"""
 	"""
 	print "listing sources"
 	for idx, source in enumerate(alAPI.listSources("source.type=environment")):
@@ -59,7 +59,7 @@ def main():
 	print "Deleting Credential"
 	alAPI.deleteCredential("7E630D12-8C5A-4FCB-BB04-459C26A31377")
 	"""
-	"""
+	#"""
 	print "Creating a source"
 	print "Listing credentials"
 	for idx, lcredential in enumerate(alAPI.listCredentials()):
@@ -76,17 +76,16 @@ def main():
 		print "Enter a number"
 		print e
 	if credential != None:
-		source_name = "Fabio-Enviroment-Test"
+		source_name = "Environment-Test-6-9-15"
 		collection_type = "aws"
-		#scope = {"include": [{"type": "vpc","key": "/aws/us-east-1/vpc/vpc-1234"}]}
 		scope = {}
-		discover = False
-		scan = False
+		discover = True
+		scan = True
 		source = alAPI.createSource(source_name, collection_type, credential, scope, discover, scan)
 		print source
 	else:
 		print "You must created or select a credential first"
-	"""
+	#"""
 
 if __name__ == "__main__":
 	main()
