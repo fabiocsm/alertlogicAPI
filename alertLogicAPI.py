@@ -17,8 +17,8 @@ class AlertLogicAPI:
 		#The API base url
 		#self._BASE_URL = "https://api.cloudinsight.alertlogic.com"
 		self._BASE_URL = "https://api.product.dev.alertlogic.com"
-		self.credentials = list()
-		self.sources = list()
+		self.credentials = dict()
+		self.sources = dict()
 
 	def login(self, username, password):
 		"""Method which generates the token for the other requests and gets the user information"""
@@ -88,7 +88,7 @@ class AlertLogicAPI:
 			req = requests.post(self._BASE_URL+create_credential_url, headers=headers, data=payload, verify=False)
 			if req.status_code == requests.codes.created:
 				credential = APIObject(req.json().get("credential"))
-				self.credentials.append(credential)
+				self.credentials[credential.id] = credential
 				print "Credential Created"
 				return credential
 			elif req.status_code == requests.codes.bad_request:
@@ -119,19 +119,19 @@ class AlertLogicAPI:
 		req = requests.get(self._BASE_URL+list_credentials_url, headers=headers, verify=False)
 		if req.status_code == requests.codes.ok:
 			response = req.json()
-			self.credentials = list()
+			self.credentials = dict()
 			for credObj in response.get("credentials"):
 				credential = APIObject(credObj.get("credential"))
-				self.credentials.append(credential)
+				self.credentials[credential.id] = credential
 			return self.credentials
 		elif req.status_code == requests.codes.service_unavailable:
 			print "Service unavailable, please try later!"
 			req.raise_for_status()
-			return list()
+			return dict()
 		else:
 			print "Error " + str(req.status_code)
 			req.raise_for_status()
-			return list()
+			return dict()
 
 	def getCredential(self, credential_id):
 		"""Method which presents the information of a given credential by ID"""
@@ -176,19 +176,19 @@ class AlertLogicAPI:
 		req = requests.get(self._BASE_URL+list_sources_url, headers=headers, verify=False)
 		if req.status_code == requests.codes.ok:
 			response = req.json()
-			self.sources = list()
+			self.sources = dict()
 			for sourceObj in response.get("sources"):
 				source = APIObject(sourceObj.get("source"))
-				self.sources.append(source)
+				self.sources[source.id] = source
 			return self.sources
 		elif req.status_code == requests.codes.service_unavailable:
 			print "Service unavailable, please try later!"
 			req.raise_for_status()
-			return list()
+			return dict()
 		else:
 			print "Error " + str(req.status_code)
 			req.raise_for_status()
-			return list()
+			return dict()
 
 	def createSource(self, name, collection_type, credential, scope, discover, scan):
 		"""Method which creates a source using the API"""
@@ -204,7 +204,7 @@ class AlertLogicAPI:
 		if req.status_code == requests.codes.created:
 			response = req.json()
 			source = APIObject(response.get("source"))
-			self.sources.append(source)
+			self.sources[source.id] = source
 			print "Source Created"
 			return source
 		elif req.status_code == requests.codes.internal_server_error:
