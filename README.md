@@ -26,11 +26,11 @@ class CloudInsightAPI:
 ```
 
 ### login(username, password)
-@param username (string)
-The user name to log into the system
-@param password (string)
-The user password
-@return boolean if the login succeed or not
+**@param** _username_ (string)  
+The user name to log into the system  
+**@param** _password_ (string)  
+The user password  
+**@return** _boolean_ if the login succeed or not  
 
 ### validate(credential) (static method)
 @param credential (object)
@@ -39,7 +39,7 @@ The object which contains the credential information
 if the given credential information is validate
 
 ### createCredential(type, name, dict_cred_data)
-```objective-c
+```
  @param type (string)
  The type of the credential
  @param name (string)
