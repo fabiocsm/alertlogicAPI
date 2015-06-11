@@ -102,7 +102,10 @@ The UUID of the source
 This removes the source from system and from the instance dictionary as well 
 
 ## pip Install
+```bash
 pip install al-cloudinsight    
-
-#run the example program
+```
+### Run the example program
+```bash
 python /Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/cloud-insight/program.py
+```
