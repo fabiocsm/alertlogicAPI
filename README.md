@@ -1,11 +1,11 @@
 # Cloud Insight API
 
-This an example project which shows how to access the [Cloud Insight API](https://console.cloudinsight.alertlogic.com/api/) using Python.
+This is an example project which shows how to access the [Cloud Insight API](https://console.cloudinsight.alertlogic.com/api/) using Python.
 
 ## Overview
 The [Cloud Insight API](https://console.cloudinsight.alertlogic.com/api/) is a REST API which provide many services related with the Cloud Insight system.
 The data transmition protocol is JSON objects, the API receives and send answers as JSON objects and send HTTP error or confirmation as HTTP status code.
-The [CloudInsightAPI](cloudInsightAPI.py) class provide an interface and some example methods to access the [Cloud Insight API](https://console.cloudinsight.alertlogic.com/api/). All the objects accessed by [CloudInsightAPI](cloudInsightAPI.py) will have the JSON response converted to generic Python objects ([Bunch](https://github.com/dsc/bunch)) which can have their properties accessed by obj.property syntax instead dictionary syntax. The print of the objects will return a JSON formatted string to facilitade the visualization of the object data.
+The [CloudInsightAPI class](cloudInsightAPI.py)  provide an interface and some example methods to access the [Cloud Insight API](https://console.cloudinsight.alertlogic.com/api/). All the objects accessed by [CloudInsightAPI class](cloudInsightAPI.py) will have the JSON response converted to generic Python objects ([Bunch](https://github.com/dsc/bunch)) which can have their properties accessed by obj.property syntax instead dictionary syntax. The print of the objects will return a JSON formatted string to facilitade the visualization of the object data.
 The requests are made using the [Requests](http://docs.python-requests.org/en/latest/) library and will raise [requests.exceptions.RequestException](http://docs.python-requests.org/en/latest/api/#requests.exceptions.RequestException) when some request fail accorting to the status code error.
 
 The [program.py](program.py) provide an example of a command line script implementation of the CloudInsightAPI class
@@ -31,7 +31,7 @@ The user name to log into the system
 **@param** _password_ (string)  
 The user password  
 **@return** _(boolean)_
-Whether the login succeed or not  
+Whether the login succeed
 
 ### validate(credential) (static method)
 **@param** credential (object)  
@@ -59,7 +59,7 @@ This method save locally in the instance a dictionary of the search results wher
 **@param** _credential_id_ (string)  
 The UUID of the credential  
 **@return** _(object)_  
-The credential object found or raise an 404 exceptions if any object was found.  
+The found credential object or raise a 404 exception if any object was found.  
 
 ### deleteCredential(credential_id)
 **@param** _credential_id_ (string)  
@@ -81,7 +81,7 @@ Whether the system system should discover the enviroment
 **@param** _scan_ (boolean)  
 Whether the system should scan the sources  
 **@return** _(object)_  
-The source created  
+The created source   
 
 ### listSources(filters="")
 **@param** _filters_ (string)  
@@ -93,7 +93,7 @@ This method save locally in the instance a dictionary of the search results wher
 **@param** _source_id_ (string)  
 The UUID of the source  
 **@return** _(object)_  
-The source object found or raise an 404 exceptions if any object was found.  
+The found source object or raise a 404 exception if any object was found.  
 
 ### deleteSource(source_id)
 **@param** _source_id_ (string)  
