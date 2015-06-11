@@ -39,7 +39,7 @@ The object which contains the credential information
 if the given credential information is validate
 
 ### createCredential(type, name, dict_cred_data)
-```java
+```objective-c
  @param type (string)
  The type of the credential
  @param name (string)
