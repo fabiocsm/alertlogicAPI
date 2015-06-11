@@ -5,7 +5,7 @@ This an example project which shows how to access the [Cloud Insight API](https:
 ## Overview
 The [Cloud Insight API](https://console.cloudinsight.alertlogic.com/api/) is a REST API which provide many services related with the Cloud Insight system.
 The data transmition protocol is JSON objects, the API receives and send answers as JSON objects and send HTTP error or confirmation as HTTP status code.
-The [CloudInsightAPI](cloudinsight.py) class provide an interface and some example methods to access the [Cloud Insight API](https://console.cloudinsight.alertlogic.com/api/). All the objects accessed by [CloudInsightAPI](cloudinsight.py) will have the JSON response converted to generic Python objects ([Bunch](https://github.com/dsc/bunch)) which can have their properties accessed by obj.property syntax instead dictionary syntax. The print of the objects will return a JSON formatted string to facilitade the visualization of the object data.
+The [CloudInsightAPI](./cloudinsight.py) class provide an interface and some example methods to access the [Cloud Insight API](https://console.cloudinsight.alertlogic.com/api/). All the objects accessed by [CloudInsightAPI](./cloudinsight.py) will have the JSON response converted to generic Python objects ([Bunch](https://github.com/dsc/bunch)) which can have their properties accessed by obj.property syntax instead dictionary syntax. The print of the objects will return a JSON formatted string to facilitade the visualization of the object data.
 The requests are made using the [Requests](http://docs.python-requests.org/en/latest/) library and will raise [requests.exceptions.RequestException](http://docs.python-requests.org/en/latest/api/#requests.exceptions.RequestException) when some request fail accorting to the status code error.
 
 The [program.py](program.py) provide an example of a command line script implementation of the CloudInsightAPI class
@@ -39,15 +39,15 @@ The object which contains the credential information
 if the given credential information is validate
 
 ### createCredential(type, name, dict_cred_data)
-```python
-@param type (string)
-The type of the credential
-@param name (string)
-The name of the credential
-@param dict_cred_data (dictionary)
-The dictionary which contains the key and values accorting to the credential configuration needed
-@return (object)
-The credential created
+```ruby
+# @param type (string)
+# The type of the credential
+# @param name (string)
+# The name of the credential
+# @param dict_cred_data (dictionary)
+# The dictionary which contains the key and values accorting to the credential configuration needed
+# @return (object)
+# The credential created
 ```
 ### listCredentials(filters="")
 @param filters (string)
