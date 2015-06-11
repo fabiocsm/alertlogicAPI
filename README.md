@@ -3,12 +3,12 @@
 This is an example project which shows how to access the [Cloud Insight API](https://console.cloudinsight.alertlogic.com/api/) using Python.
 
 ## Overview
-The [Cloud Insight API](https://console.cloudinsight.alertlogic.com/api/) is a REST API which provide many services related with the Cloud Insight system.
-The data transmition protocol is JSON objects, the API receives and send answers as JSON objects and send HTTP error or confirmation as HTTP status code.
-The [CloudInsightAPI class](cloudInsightAPI.py)  provide an interface and some example methods to access the [Cloud Insight API](https://console.cloudinsight.alertlogic.com/api/). All the objects accessed by [CloudInsightAPI class](cloudInsightAPI.py) will have the JSON response converted to generic Python objects ([Bunch](https://github.com/dsc/bunch)) which can have their properties accessed by obj.property syntax instead dictionary syntax. The print of the objects will return a JSON formatted string to facilitade the visualization of the object data.
+The [Cloud Insight API](https://console.cloudinsight.alertlogic.com/api/) is a REST API which provideS many services related to the Cloud Insight system.
+The data transmission protocol is JSON objects. The API receives and sends answers as JSON objects and HTTP errors or confirmation as HTTP status code.
+The [CloudInsightAPI class](cloudInsightAPI.py)  provides an interface and some example methods to access the [Cloud Insight API](https://console.cloudinsight.alertlogic.com/api/). All the objects accessed by the [CloudInsightAPI class](cloudInsightAPI.py) will have the JSON response converted to generic Python objects ([Bunch](https://github.com/dsc/bunch)) which can have their properties accessed by obj.property syntax instead of dictionary syntax. The print of the objects will return a JSON formatted string to facilitade the visualization of the object data.
 The requests are made using the [Requests](http://docs.python-requests.org/en/latest/) library and will raise [requests.exceptions.RequestException](http://docs.python-requests.org/en/latest/api/#requests.exceptions.RequestException) when some request fail accorting to the status code error.
 
-The [program.py](program.py) provide an example of a command line script implementation of the CloudInsightAPI class
+The [program.py](program.py) provide an example of a command line script implementation of the [CloudInsightAPI class](cloudInsightAPI.py)
 
 ## Methods
 
@@ -33,7 +33,7 @@ The user password
 **@return** _(boolean)_
 Whether the login succeed
 
-### validate(credential) (static method)
+### validate(credential) _@staticmethod_
 **@param** credential (object)  
 The object which contains the credential information  
 **@return** boolean  
@@ -67,7 +67,7 @@ The UUID of the credential
 **@return** _(void)_ 
 This remove the credential from system and from the instance dictionary as well  
 
-### createSource(self, name, collection_type, credential, scope, discover, scan):
+### createSource(name, collection_type, credential, scope, discover, scan):
 **@param** _name_ (string)  
 The name of the source  
 **@param** _collection_type_ (string)  
@@ -85,7 +85,7 @@ The created source
 
 ### listSources(filters="")
 **@param** _filters_ (string)  
-The filters to apply in the API credential search according to the [CloudInsightAPI filters objects](https://console.cloudinsight.alertlogic.com/api/sources/#api-_footer)  
+The filters to apply in the API credential search according to the [CloudInsightAPI filter objects](https://console.cloudinsight.alertlogic.com/api/sources/#api-_footer)  
 **@return** _(dictionary)_  
 This method save locally in the instance a dictionary of the search results where the UUID of each item is the key and the source object itself is the value. It also returns that dictionary
 
