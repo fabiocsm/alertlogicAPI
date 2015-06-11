@@ -11,7 +11,7 @@ class APIObject(Bunch):
 	def __str__(self):
 		return (json.dumps(self, indent = 3,  sort_keys=True))
 
-class AlertLogicAPI:
+class CloudInsightAPI:
 	""" Class to make request to the Alert Logic API """
 	def __init__(self):
 		#The API base url
@@ -19,6 +19,8 @@ class AlertLogicAPI:
 		self._BASE_URL = "https://api.product.dev.alertlogic.com"
 		self.credentials = dict()
 		self.sources = dict()
+		self.user = None
+		self.token = ""
 
 	def login(self, username, password):
 		"""Method which generates the token for the other requests and gets the user information"""
