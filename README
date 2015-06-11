@@ -99,4 +99,10 @@ The found source object or raise a 404 exception if any object was found.
 **@param** _source_id_ (string)  
 The UUID of the source  
 **@return** _(void)_  
-This removes the source from system and from the instance dictionary as well  
+This removes the source from system and from the instance dictionary as well 
+
+## pip Install
+pip install al-cloudinsight    
+
+#run the example program
+python /Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/cloud-insight/program.py
