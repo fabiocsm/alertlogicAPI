@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from alertLogicAPI import *
+import getpass
 
 def options():
 	print "\r\n"
@@ -74,7 +75,7 @@ def login(alAPI):
 	print "System Login"
 	print "Please Enter your login information"
 	username = raw_input("Username: ")
-	password = raw_input("Password: ")
+	password = getpass.getpass("Password: ")
 	success = alAPI.login(username, password)
 	return success
 

@@ -23,7 +23,7 @@ class AlertLogicAPI:
 	def login(self, username, password):
 		"""Method which generates the token for the other requests and gets the user information"""
 		authenticate_url = "/aims/v1/authenticate"
-		req = requests.post(self._BASE_URL+authenticate_url, auth=HTTPBasicAuth(username, password), verify=False)
+		req = requests.post(self._BASE_URL+authenticate_url, auth=HTTPBasicAuth(username, password))
 		if req.status_code == requests.codes.ok:
 			response = req.json()
 			self.token = response.get("authentication").get("token","")
@@ -50,7 +50,7 @@ class AlertLogicAPI:
 		jsonCredential = APIObject({"credential": credential})
 		payload = json.dumps(jsonCredential)
 		headers = {"X-AIMS-Auth-Token": self.token, "Content-Type": "application/json"}
-		req = requests.post(self._BASE_URL+credentials_url, headers=headers, data=payload, verify=False)
+		req = requests.post(self._BASE_URL+credentials_url, headers=headers, data=payload)
 		if req.status_code == requests.codes.ok:
 			print "Valid credential"
 			return True
@@ -85,7 +85,7 @@ class AlertLogicAPI:
 			jsonCredential = APIObject({"credential": credential})
 			payload = json.dumps(jsonCredential)
 			headers = {"X-AIMS-Auth-Token": self.token, "Content-Type": "application/json"}
-			req = requests.post(self._BASE_URL+create_credential_url, headers=headers, data=payload, verify=False)
+			req = requests.post(self._BASE_URL+create_credential_url, headers=headers, data=payload)
 			if req.status_code == requests.codes.created:
 				credential = APIObject(req.json().get("credential"))
 				self.credentials[credential.id] = credential
@@ -116,7 +116,7 @@ class AlertLogicAPI:
 		"""Method which lists all the credentials of the user"""
 		list_credentials_url = "/sources/v1/" + self.user.account_id + "/credentials?" + filters
 		headers = {"X-AIMS-Auth-Token": self.token}
-		req = requests.get(self._BASE_URL+list_credentials_url, headers=headers, verify=False)
+		req = requests.get(self._BASE_URL+list_credentials_url, headers=headers)
 		if req.status_code == requests.codes.ok:
 			response = req.json()
 			self.credentials = dict()
@@ -137,7 +137,7 @@ class AlertLogicAPI:
 		"""Method which presents the information of a given credential by ID"""
 		get_credential_url = "/sources/v1/" + self.user.account_id + "/credentials/" + credential_id
 		headers = {"X-AIMS-Auth-Token": self.token}
-		req = requests.get(self._BASE_URL+get_credential_url, headers=headers, verify=False)
+		req = requests.get(self._BASE_URL+get_credential_url, headers=headers)
 		if req.status_code == requests.codes.ok:
 			credential = APIObject(req.json().get("credential"))
 			return credential
@@ -158,7 +158,7 @@ class AlertLogicAPI:
 		"""Method which deletes a credential by ID"""
 		delete_credential_url = "/sources/v1/" + self.user.account_id + "/credentials/" + credential_id
 		headers = {"X-AIMS-Auth-Token": self.token}
-		req = requests.delete(self._BASE_URL+delete_credential_url, headers=headers, verify=False)
+		req = requests.delete(self._BASE_URL+delete_credential_url, headers=headers)
 		if req.status_code == requests.codes.no_content:
 			self.credential = None
 			print "Credential deleted"
@@ -173,7 +173,7 @@ class AlertLogicAPI:
 		"""Method which list all the logged user sources"""
 		list_sources_url = "/sources/v1/" + self.user.account_id + "/sources?" + filters
 		headers = {"X-AIMS-Auth-Token": self.token}
-		req = requests.get(self._BASE_URL+list_sources_url, headers=headers, verify=False)
+		req = requests.get(self._BASE_URL+list_sources_url, headers=headers)
 		if req.status_code == requests.codes.ok:
 			response = req.json()
 			self.sources = dict()
@@ -200,7 +200,7 @@ class AlertLogicAPI:
 		json_source = APIObject({"source": source})
 		payload = json.dumps(json_source)
 		headers = {"X-AIMS-Auth-Token" : self.token, "Content-Type" : "application/json"}
-		req = requests.post(self._BASE_URL+create_source_url, headers=headers, data=payload, verify=False)
+		req = requests.post(self._BASE_URL+create_source_url, headers=headers, data=payload)
 		if req.status_code == requests.codes.created:
 			response = req.json()
 			source = APIObject(response.get("source"))
@@ -225,7 +225,7 @@ class AlertLogicAPI:
 		"""Method which gets a source given its ID"""
 		get_source_url = "/sources/v1/" + self.user.account_id + "/sources/" + source_id
 		headers = {"X-AIMS-Auth-Token": self.token}
-		req = requests.get(self._BASE_URL+get_source_url, headers=headers, verify=False)
+		req = requests.get(self._BASE_URL+get_source_url, headers=headers)
 		if req.status_code == requests.codes.ok:
 			source = APIObject(req.json().get("source"))
 			return source
@@ -246,7 +246,7 @@ class AlertLogicAPI:
 		"""Method which deletes a source"""
 		delete_source_url = "/sources/v1/" + self.user.account_id + "/sources/" + source_id
 		headers = {"X-AIMS-Auth-Token": self.token}
-		req = requests.delete(self._BASE_URL+delete_source_url, headers=headers, verify=False)
+		req = requests.delete(self._BASE_URL+delete_source_url, headers=headers)
 		if req.status_code == requests.codes.no_content:
 			print "Source deleted"
 		elif req.status_code == requests.codes.service_unavailable:
