@@ -5,7 +5,7 @@ This an example project which shows how to access the [Cloud Insight API](https:
 ## Overview
 The [Cloud Insight API](https://console.cloudinsight.alertlogic.com/api/) is a REST API which provide many services related with the Cloud Insight system.
 The data transmition protocol is JSON objects, the API receives and send answers as JSON objects and send HTTP error or confirmation as HTTP status code.
-The [CloudInsightAPI](./cloudinsight.py) class provide an interface and some example methods to access the [Cloud Insight API](https://console.cloudinsight.alertlogic.com/api/). All the objects accessed by [CloudInsightAPI](./cloudinsight.py) will have the JSON response converted to generic Python objects ([Bunch](https://github.com/dsc/bunch)) which can have their properties accessed by obj.property syntax instead dictionary syntax. The print of the objects will return a JSON formatted string to facilitade the visualization of the object data.
+The [CloudInsightAPI](cloudInsightAPI.py) class provide an interface and some example methods to access the [Cloud Insight API](https://console.cloudinsight.alertlogic.com/api/). All the objects accessed by [CloudInsightAPI](cloudInsightAPI.py) will have the JSON response converted to generic Python objects ([Bunch](https://github.com/dsc/bunch)) which can have their properties accessed by obj.property syntax instead dictionary syntax. The print of the objects will return a JSON formatted string to facilitade the visualization of the object data.
 The requests are made using the [Requests](http://docs.python-requests.org/en/latest/) library and will raise [requests.exceptions.RequestException](http://docs.python-requests.org/en/latest/api/#requests.exceptions.RequestException) when some request fail accorting to the status code error.
 
 The [program.py](program.py) provide an example of a command line script implementation of the CloudInsightAPI class
@@ -30,73 +30,73 @@ class CloudInsightAPI:
 The user name to log into the system  
 **@param** _password_ (string)  
 The user password  
-**@return** _boolean_ if the login succeed or not  
+**@return** _(boolean)_
+Whether the login succeed or not  
 
 ### validate(credential) (static method)
-@param credential (object)
-The object which contains the credential information
-@return boolean
-if the given credential information is validate
+**@param** credential (object)  
+The object which contains the credential information  
+**@return** boolean  
+Whether the given credential information is validate  
 
 ### createCredential(type, name, dict_cred_data)
-```
- @param type (string)
- The type of the credential
- @param name (string)
- The name of the credential
- @param dict_cred_data (dictionary)
- The dictionary which contains the key and values accorting to the credential configuration needed
- @return (object)
- The credential created
-```
+ **@param** _type_ (string)  
+ The type of the credential  
+ **@param** _name_ (string)  
+ The name of the credential  
+ **@param** _dict_cred_data_ (dictionary)  
+ The dictionary which contains the key and values accorting to the credential configuration needed  
+ **@return** _(object)_  
+ The created credential  
+ 
 ### listCredentials(filters="")
-@param filters (string)
-The filters to apply in the API credential search according to the [CloudInsightAPI filters objects](https://console.cloudinsight.alertlogic.com/api/sources/#api-_footer)
-@return (dictionary)
+**@param** filters (string)  
+The filters to apply in the API credential search according to the [CloudInsightAPI filters objects](https://console.cloudinsight.alertlogic.com/api/sources/#api-_footer)  
+**@return** (dictionary)  
 This method save locally in the instance a dictionary of the search results where the UUID of each item is the key and the credential object itself is the value. It also returns that dictionary
 
 ### getCredential(credential_id)
-@param credential_id (string)
-The UUID of the credential
-@return (object)
-The credential object found or raise an 404 exceptions if any object was found.
+**@param** _credential_id_ (string)  
+The UUID of the credential  
+**@return** _(object)_  
+The credential object found or raise an 404 exceptions if any object was found.  
 
 ### deleteCredential(credential_id)
-@param credential_id (string)
-The UUID of the credential
-@return (void)
-This remove the credential from system and from the instance dictionary as well
+**@param** _credential_id_ (string)  
+The UUID of the credential  
+**@return** _(void)_ 
+This remove the credential from system and from the instance dictionary as well  
 
 ### createSource(self, name, collection_type, credential, scope, discover, scan):
-@param name (string)
-The name of the source
-@param collection_type (string)
-The collection type of the source
-@param credential (object)
-The credential object which will be added to the source
-@param scope (dictionary)
-The scope with the path of the sources to be included or excluded from the enviroment
-@param discover (boolean)
-Whether or not the system system should discover the enviroment
-@param scan (boolean)
-Whether or not the system should scan the sources
-@return (object)
-The source created
+**@param** _name_ (string)  
+The name of the source  
+**@param** _collection_type_ (string)  
+The collection type of the source  
+**@param** _credential_ (object)  
+The credential object which will be added to the source  
+**@param** _scope_ (dictionary)  
+The scope with the path of the sources to be included or excluded from the enviroment  
+**@param** _discover_ (boolean)  
+Whether the system system should discover the enviroment  
+**@param** _scan_ (boolean)  
+Whether the system should scan the sources  
+**@return** _(object)_  
+The source created  
 
 ### listSources(filters="")
-@param filters (string)
-The filters to apply in the API credential search according to the [CloudInsightAPI filters objects](https://console.cloudinsight.alertlogic.com/api/sources/#api-_footer)
-@return (dictionary)
+**@param** _filters_ (string)  
+The filters to apply in the API credential search according to the [CloudInsightAPI filters objects](https://console.cloudinsight.alertlogic.com/api/sources/#api-_footer)  
+**@return** _(dictionary)_  
 This method save locally in the instance a dictionary of the search results where the UUID of each item is the key and the source object itself is the value. It also returns that dictionary
 
 ### getSource(source_id)
-@param source_id (string)
-The UUID of the source
-@return (object)
-The source object found or raise an 404 exceptions if any object was found.
+**@param** _source_id_ (string)  
+The UUID of the source  
+**@return** _(object)_  
+The source object found or raise an 404 exceptions if any object was found.  
 
 ### deleteSource(source_id)
-@param source_id (string)
-The UUID of the source
-@return (void)
-This remove the source from system and from the instance dictionary as well
+**@param** _source_id_ (string)  
+The UUID of the source  
+**@return** _(void)_  
+This remove the source from system and from the instance dictionary as well  
