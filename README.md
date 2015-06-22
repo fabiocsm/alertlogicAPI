@@ -109,3 +109,8 @@ pip install al-cloudinsight
 ```bash
 python /Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/cloud-insight/program.py
 ```
+
+## Updating the pip files
+1. Create an user on [Python Package Index](https://pypi.python.org/pypi?%3Aaction=register_form)
+2. Ask to be added to the maintainers group of this project. (send an e-mail to [fmiranda@alertlogic.com](mailto:fmiranda@alertlogic.com) with your pip username)
+3. After receive the confirmation that you are in the group. Follow these instructions [Packaging and Distributing Python Projects](https://packaging.python.org/en/latest/distributing.html) to upload the code.
